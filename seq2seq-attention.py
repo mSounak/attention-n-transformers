@@ -3,10 +3,6 @@ import numpy as np
 import pandas as pd
 
 
-inputs = tf.keras.Input(shape=(None,))
-
-embedding = tf.keras.layers.Embedding(input_dim=10, output_dim=5)(inputs)
-
 class Encoder(tf.keras.layers.Layer):
     def __init__(self, units):
         super(Encoder, self).__init__()
@@ -65,12 +61,17 @@ class Decoder(tf.keras.layers.Layer):
         return out
 
 
+# Encoder
+inputs = tf.keras.Input(shape=(None,))
+embedding = tf.keras.layers.Embedding(input_dim=10, output_dim=5)(inputs)
 encoder_out, hs, cs = Encoder(4)(embedding)
 
+# Decoder
 decoder_input = tf.keras.Input(shape=(None,))
 decoder_embedding = tf.keras.layers.Embedding(input_dim=10, output_dim=5)(decoder_input)
 decoder_out = Decoder(4)(decoder_embedding, hs, cs, encoder_out)
 
+# Model
 model = tf.keras.Model(inputs=[inputs, decoder_input], outputs=[decoder_out])
 
 random_input = np.array([1, 2, 3]).reshape(1, 3)
