@@ -1,25 +1,37 @@
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import Input
-
-# 1st step of creating a transformer encoder
-# Create input embeddings for the transformer encoder
-
-# let's say we are taking input like this.
-encoder_input = Input(shape=(None,))
-
-# Next step is to create the embedding layer
-# we will use the embedding layer to create the embeddings
-
-encoder_embedding = tf.keras.layers.Embedding(input_dim=1000, output_dim=64)(encoder_input)
+from tensorflow.keras.layers import Layer, Embedding, Dropout, Dense, LayerNormalization
 
 
-# Now we will create a positional encoding layer
-def get_angles(pos, i, d_dim):
-    angle_rates = 1 / np.power(10000, (2 * (i // 2)) / np.float32(d_dim))
-    return pos * angle_rates
+# Transformer Encoder block
 
-pos_vector = tf.arange(0, seq_length)
+class Encoder(Layer):
+    def __init__(self, embed_dim, dense_dim, num_heads, **kwargs):
+        super(Encoder, self).__init__(**kwargs)
+        self.embed_dim = embed_dim
+        self.dense_dim = dense_dim
+        self.num_heads = num_heads
 
-pos_vector[:, 0::2] = np.sin(get_angles(pos_vector[:, 0::2], 0, d_dim))
-pos_vector[:, 1::2] = np.cos(get_angles(pos_vector[:, 1::2], 1, d_dim))
+        self.attention = MultiHeadAttention(num_heads=num_heads, key_dim=embed_dim)
+
+        self.layer_norm1 = LayerNormalization()
+        self.layer_norm2 = LayerNormalization()
+
+        self.fc = tf.keras.Sequential([
+            Dense(dense_dim, activation='relu'),
+            Dense(embed_dim)
+        ])
+        
+
+    def call(self, inputs):
+
+        attn_out = self.attention(query=inputs, value=inputs, key=inputs)
+
+        x1 = self.layer_norm1(inputs + attn_out)
+
+        fc_out = self.fc(x1)
+
+        x2 = self.layer_norm2(x1 + fc_out)
+
+        return x2
