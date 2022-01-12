@@ -14,12 +14,14 @@ class PositionalEncoding(Layer):
         self.dropout = Dropout(0.1)
 
     def call(self, x):
-        pe = np.array([get_angles(pos) for pos in range(self.max_seq_len)])
+        pe = np.array([self.get_angles(pos) for pos in range(self.max_seq_len)])
         pe[:, 0::2] = np.sin(pe[:, 0::2])
         pe[:, 1::2] = np.cos(pe[:, 1::2])
 
+        pe = tf.expand_dims(tf.cast(pe, dtype=tf.float32), axis=0)
+
         seq_len = tf.shape(x)[1]
-        x = x * tf.math.sqrt(tf.cast(self.embed_dim), dtype=tf.float32)
+        x = x * tf.math.sqrt(tf.cast(self.embed_dim, dtype=tf.float32))
 
         x = x + pe[:, :seq_len, :]
 

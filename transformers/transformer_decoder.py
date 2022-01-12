@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import Input
-from tensorflow.keras.layers import Layer, Embedding, Dropout, Dense, LayerNormalization
+from tensorflow.keras.layers import Layer, Embedding, Dropout, Dense, LayerNormalization, MultiHeadAttention
 
 # Transformer Decoder
 
@@ -24,15 +24,15 @@ class Decoder(Layer):
             Dense(embed_dim)
         ])
 
-    def call(self, dec_input, enc_output):
+    def call(self, dec_input, enc_output, look_ahead_mask, padding_mask):
 
         attn_out1 = self.attention_1(
-            query=dec_input, value=dec_input, key=dec_input)
+            query=dec_input, value=dec_input, key=dec_input, attention_mask=look_ahead_mask)
 
-        x1 = self.layer_norm1(dec_input + attn_out_1)
+        x1 = self.layer_norm1(dec_input + attn_out1)
 
-        attn_out2 = self.attention2(
-            query=x1, value=enc_output, key=enc_output)
+        attn_out2 = self.attention_2(
+            query=x1, value=enc_output, key=enc_output, attention_mask=padding_mask)
 
         x2 = self.layer_norm2(x1 + attn_out2)
 

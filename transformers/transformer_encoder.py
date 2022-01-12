@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import Input
-from tensorflow.keras.layers import Layer, Embedding, Dropout, Dense, LayerNormalization
+from tensorflow.keras.layers import Layer, Embedding, Dropout, Dense, LayerNormalization, MultiHeadAttention
 
 
 # Transformer Encoder block
@@ -24,9 +24,10 @@ class Encoder(Layer):
         ])
         
 
-    def call(self, inputs):
+    def call(self, inputs, padding_mask):
 
-        attn_out = self.attention(query=inputs, value=inputs, key=inputs)
+        attn_out = self.attention(query=inputs, value=inputs, key=inputs,
+        attention_mask=padding_mask)
 
         x1 = self.layer_norm1(inputs + attn_out)
 
